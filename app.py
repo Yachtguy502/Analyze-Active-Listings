@@ -73,12 +73,15 @@ def main():
             summary_df, missing_engine_hours, invalid_hin_boats, missing_display_price, low_image_boats = process_data(df)
             
             if summary_df is not None:
-                total_bt = summary_df[['BT Advantage', 'BT Plus', 'BT Select']].sum().sum()
-                total_yw = summary_df[['YW Advantage', 'YW Plus', 'YW Select']].sum().sum()
+                st.subheader("Total Membership Revenue Breakdown")
                 
-                st.subheader("Total Membership Revenue")
-                st.markdown(f"### **Total BoatTrader Revenue: ${total_bt:,.2f}**")
-                st.markdown(f"### **Total YachtWorld Revenue: ${total_yw:,.2f}**")
+                st.markdown(f"### **BoatTrader Advantage: ${summary_df['BT Advantage'].sum():,.2f}**")
+                st.markdown(f"### **BoatTrader Plus: ${summary_df['BT Plus'].sum():,.2f}**")
+                st.markdown(f"### **BoatTrader Select: ${summary_df['BT Select'].sum():,.2f}**")
+                
+                st.markdown(f"### **YachtWorld Advantage: ${summary_df['YW Advantage'].sum():,.2f}**")
+                st.markdown(f"### **YachtWorld Plus: ${summary_df['YW Plus'].sum():,.2f}**")
+                st.markdown(f"### **YachtWorld Select: ${summary_df['YW Select'].sum():,.2f}**")
                 
                 st.subheader("Price Breakdown by Tier")
                 st.dataframe(summary_df)
@@ -112,4 +115,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
