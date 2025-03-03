@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
 
 def load_data(file):
     try:
@@ -74,28 +73,26 @@ def main():
             summary_df, missing_engine_hours, invalid_hin_boats, missing_display_price, low_image_boats = process_data(df)
             
             if summary_df is not None:
-                st.subheader("Price Band Summary Visualization")
-                fig, ax = plt.subplots()
-                summary_df.set_index("Price Band")[['BT Advantage', 'BT Plus', 'BT Select', 'YW Advantage', 'YW Plus', 'YW Select']].plot(kind='bar', ax=ax)
-                st.pyplot(fig)
-                
                 total_bt = summary_df[['BT Advantage', 'BT Plus', 'BT Select']].sum().sum()
                 total_yw = summary_df[['YW Advantage', 'YW Plus', 'YW Select']].sum().sum()
-                st.markdown(f"### **Total BoatTrader Membership Revenue: ${total_bt:,.2f}**")
-                st.markdown(f"### **Total YachtWorld Membership Revenue: ${total_yw:,.2f}**")
                 
-                st.subheader("Detailed Breakdown")
+                st.subheader("Total Membership Revenue")
+                st.markdown(f"### **Total BoatTrader Revenue: ${total_bt:,.2f}**")
+                st.markdown(f"### **Total YachtWorld Revenue: ${total_yw:,.2f}**")
+                
+                st.subheader("Price Breakdown by Tier")
                 st.dataframe(summary_df)
                 
-                with pd.ExcelWriter("boat_inventory_report.xlsx") as writer:
-                    summary_df.to_excel(writer, sheet_name="Price Bands", index=False)
-                    missing_engine_hours.to_excel(writer, sheet_name="Missing Engine Hours", index=False)
-                    invalid_hin_boats.to_excel(writer, sheet_name="Invalid HIN", index=False)
-                    missing_display_price.to_excel(writer, sheet_name="Missing Display Price", index=False)
-                    low_image_boats.to_excel(writer, sheet_name="Low Images", index=False)
-                
-                st.success("Excel file created: boat_inventory_report.xlsx")
-                
+                if st.button("Download Excel Report"):
+                    with pd.ExcelWriter("boat_inventory_report.xlsx") as writer:
+                        summary_df.to_excel(writer, sheet_name="Price Bands", index=False)
+                        missing_engine_hours.to_excel(writer, sheet_name="Missing Engine Hours", index=False)
+                        invalid_hin_boats.to_excel(writer, sheet_name="Invalid HIN", index=False)
+                        missing_display_price.to_excel(writer, sheet_name="Missing Display Price", index=False)
+                        low_image_boats.to_excel(writer, sheet_name="Low Images", index=False)
+                    
+                    st.success("Excel report has been generated and is ready for download.")
+            
             st.subheader("Additional Data Insights")
             if missing_engine_hours is not None:
                 st.subheader("Boats with Missing Engine Hours")
@@ -115,3 +112,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
