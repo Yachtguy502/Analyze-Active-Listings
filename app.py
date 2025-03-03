@@ -11,19 +11,25 @@ def load_data(file):
 
 def process_data(df):
     if df is None:
-        return None, None, None
+        return None, None, None, None, None
     
-    required_columns = ["Engine Hours", "Valid HIN?", "Display Price", "Make", "Model"]
+    required_columns = ["Engine Hours", "Valid HIN?", "Display Price", "Make", "Model", "Images"]
     missing_columns = [col for col in required_columns if col not in df.columns]
     if missing_columns:
         st.error(f"Missing columns in CSV: {', '.join(missing_columns)}")
-        return None, None, None
+        return None, None, None, None, None
     
     engine_hours_col = "Engine Hours"
     missing_engine_hours = df[df[engine_hours_col].isna()][["Make", "Model"]]
     
     hin_col = "Valid HIN?"
     invalid_hin_boats = df[df[hin_col] != "Yes"][["Make", "Model"]]
+    
+    display_price_col = "Display Price"
+    missing_display_price = df[df[display_price_col].isna()][["Make", "Model"]]
+    
+    images_col = "Images"
+    low_image_boats = df[df[images_col] < 10][["Make", "Model"]]
     
     price_bands = {
         "Under $10K": (0, 10000), "$10K-$25K": (10000, 25000), "$25K-$50K": (25000, 50000),
@@ -55,7 +61,20 @@ def process_data(df):
     summary_df["YW Plus"] = summary_df["YW Advantage"] * 1.25
     summary_df["YW Select"] = summary_df["YW Advantage"] * 1.50
     
-    return summary_df, missing_engine_hours, invalid_hin_boats
+    total_row = pd.DataFrame({
+        "Price Band": ["Total"],
+        "Boat Count": [summary_df["Boat Count"].sum()],
+        "BT Advantage": [summary_df["BT Advantage"].sum()],
+        "BT Plus": [summary_df["BT Plus"].sum()],
+        "BT Select": [summary_df["BT Select"].sum()],
+        "YW Advantage": [summary_df["YW Advantage"].sum()],
+        "YW Plus": [summary_df["YW Plus"].sum()],
+        "YW Select": [summary_df["YW Select"].sum()]
+    })
+    
+    summary_df = pd.concat([summary_df, total_row], ignore_index=True)
+    
+    return summary_df, missing_engine_hours, invalid_hin_boats, missing_display_price, low_image_boats
 
 def main():
     st.title("Boat Inventory Analysis Tool")
@@ -64,7 +83,7 @@ def main():
     if uploaded_file is not None:
         df = load_data(uploaded_file)
         if df is not None:
-            summary_df, missing_engine_hours, invalid_hin_boats = process_data(df)
+            summary_df, missing_engine_hours, invalid_hin_boats, missing_display_price, low_image_boats = process_data(df)
             
             if summary_df is not None:
                 st.subheader("Price Band Summary")
@@ -77,6 +96,14 @@ def main():
             if invalid_hin_boats is not None:
                 st.subheader("Boats with Invalid HIN Numbers")
                 st.dataframe(invalid_hin_boats)
+            
+            if missing_display_price is not None:
+                st.subheader("Boats with Missing Display Price")
+                st.dataframe(missing_display_price)
+            
+            if low_image_boats is not None:
+                st.subheader("Boats with Fewer than 10 Images")
+                st.dataframe(low_image_boats)
 
 if __name__ == "__main__":
     main()
