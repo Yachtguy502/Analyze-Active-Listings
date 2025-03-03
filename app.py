@@ -3,7 +3,13 @@ import pandas as pd
 
 def load_data(file):
     try:
-        df = pd.read_csv(file)
+        if file.name.endswith(".csv"):
+            df = pd.read_csv(file)
+        elif file.name.endswith(".xlsx"):
+            df = pd.read_excel(file)
+        else:
+            st.error("Unsupported file format. Please upload a .csv or .xlsx file.")
+            return None
         return df
     except Exception as e:
         st.error(f"Error loading file: {e}")
@@ -65,7 +71,7 @@ def process_data(df):
 
 def main():
     st.title("Boat Inventory Analysis Tool")
-    uploaded_file = st.file_uploader("Upload Active Listings CSV", type=["csv"])
+    uploaded_file = st.file_uploader("Upload Active Listings File", type=["csv", "xlsx"])
     
     if uploaded_file is not None:
         df = load_data(uploaded_file)
@@ -75,18 +81,20 @@ def main():
             if summary_df is not None:
                 st.subheader("Total Membership Revenue Breakdown")
                 
-                st.markdown(f"### **BoatTrader Advantage: ${summary_df['BT Advantage'].sum():,.2f}**")
-                st.markdown(f"### **BoatTrader Plus: ${summary_df['BT Plus'].sum():,.2f}**")
-                st.markdown(f"### **BoatTrader Select: ${summary_df['BT Select'].sum():,.2f}**")
+                st.write("### BoatTrader Pricing")
+                st.write(f"Advantage: ${summary_df['BT Advantage'].sum():,.2f}")
+                st.write(f"Plus: ${summary_df['BT Plus'].sum():,.2f}")
+                st.write(f"Select: ${summary_df['BT Select'].sum():,.2f}")
                 
-                st.markdown(f"### **YachtWorld Advantage: ${summary_df['YW Advantage'].sum():,.2f}**")
-                st.markdown(f"### **YachtWorld Plus: ${summary_df['YW Plus'].sum():,.2f}**")
-                st.markdown(f"### **YachtWorld Select: ${summary_df['YW Select'].sum():,.2f}**")
+                st.write("### YachtWorld Pricing")
+                st.write(f"Advantage: ${summary_df['YW Advantage'].sum():,.2f}")
+                st.write(f"Plus: ${summary_df['YW Plus'].sum():,.2f}")
+                st.write(f"Select: ${summary_df['YW Select'].sum():,.2f}")
                 
                 st.subheader("Price Breakdown by Tier")
                 st.dataframe(summary_df)
                 
-                if st.button("Download Excel Report"):
+                if st.button("Download Additional Insights (Excel)"):
                     with pd.ExcelWriter("boat_inventory_report.xlsx") as writer:
                         summary_df.to_excel(writer, sheet_name="Price Bands", index=False)
                         missing_engine_hours.to_excel(writer, sheet_name="Missing Engine Hours", index=False)
